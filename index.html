@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Espacio de Calma - Menú</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #050a19;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Degradado sutil del fondo */
+        .background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #0a142d 0%, #050a19 100%);
+            z-index: -2;
+        }
+
+        /* Capa para la nevada generativa */
+        canvas#snow-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none; /* No interfiere con los clics */
+        }
+
+        h1 {
+            font-weight: 200;
+            letter-spacing: 8px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 60px;
+            text-transform: uppercase;
+            font-size: 1.8rem;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .menu-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .game-link {
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+            transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+            padding: 12px 30px;
+            border: 1px solid rgba(255, 255, 255, 0);
+            text-transform: uppercase;
+        }
+
+        .game-link:hover {
+            color: #fff;
+            letter-spacing: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.03);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 40px;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.15);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="background"></div>
+    <canvas id="snow-background"></canvas>
+
+    <h1>JUEGUITOS</h1>
+
+    <div class="menu-container">
+        <a href="constela.html" class="game-link">Constelaciones</a>
+        <a href="barco2.html" class="game-link">Barco de Papel</a>
+        <a href="escalada5.html" class="game-link">Escalada</a>
+    </div>
+
+    <div class="footer">Experiencias Digitales de Calma</div>
+
+    <script>
+        // --- Lógica de la Nevada Sutil (Minimal Zen) ---
+        const canvas = document.getElementById('snow-background');
+        const ctx = canvas.getContext('2d');
+        
+        // Configurar la nevada
+        const SNOW_COUNT = 70; // Cantidad de copos
+        const MIN_SPEED = 0.2;  // Velocidad mínima (lenta)
+        const MAX_SPEED = 1.0;  // Velocidad máxima
+        
+        let snowParticles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initializeSnow(); // Regenerar copos al redimensionar
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        class SnowParticle {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                // Empezar arriba, o en algún punto medio si ya se inicializó
+                this.y = (arguments.length === 1 && arguments[0] === true) ? (Math.random() * canvas.height) : -10;
+                this.size = Math.random() * 2 + 0.5; // Copos pequeños
+                this.speed = Math.random() * (MAX_SPEED - MIN_SPEED) + MIN_SPEED;
+                this.opacity = Math.random() * 0.4 + 0.1; // Sutil (0.1 a 0.5)
+                this.drift = Math.random() * 0.5 - 0.25; // Deriva horizontal sutil
+            }
+
+            update() {
+                this.y += this.speed;
+                this.x += this.drift;
+
+                // Reaparecer arriba si se salen
+                if (this.y > canvas.height) {
+                    this.reset();
+                }
+                
+                // Efecto de deriva
+                if(Math.random() < 0.01) this.drift = Math.random() * 0.5 - 0.25;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+
+        function initializeSnow() {
+            snowParticles = [];
+            for (let i = 0; i < SNOW_COUNT; i++) {
+                // El primer argumento 'true' indica que empiecen en cualquier punto (pantalla llena al inicio)
+                snowParticles.push(new SnowParticle(true));
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Fondo transparente para el menú
+
+            snowParticles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        // --- Iniciar ---
+        resizeCanvas(); // Configurar canvas y generar nieve
+        animate(); // Empezar animación
+    </script>
+</body>
+</html>
